@@ -1,0 +1,33 @@
+Установка Zabbix и MySQL
+docker run --name mysql-server -t \
+-e MYSQL_DATABASE="zabbix" \
+-e MYSQL_USER="zabbix" \
+-e MYSQL_PASSWORD="zabbix" \
+-e MYSQL_ROOT_PASSWORD="root" \
+-d mysql:latest
+
+
+Проверяем журналы MySQL-сервера:
+docker logs mysql-server
+
+//Выполняем установку контейнера Zabbix-Server:
+docker run --name zabbix-server -t -p 10051:10051 \
+-e DB_SERVER_HOST="172.17.0.2" -e MYSQL_DATABASE="zabbix" \
+-e MYSQL_USER="zabbix" -e MYSQL_PASSWORD="zabbix" \
+-e MYSQL_ROOT_PASSWORD="root" \
+--link mysql-server:mysql \
+-d zabbix/zabbix-server-mysql:latest
+
+// Проверяем журналы MySQL со стороны Zabbix-Server:
+docker logs zabbix-server
+
+
+// Запускаем контейнер Zabbix-Web (фронтенд Zabbix):
+  docker run --name zabbix-web -t -p 80:8080 \
+-e DB_SERVER_HOST="172.17.0.2" \
+-e MYSQL_USER="zabbix" \
+-e MYSQL_PASSWORD="zabbix" \
+-e ZBX_SERVER_HOST="172.17.0.3" \
+-e ZBX_SERVER_NAME="MyZabbix" \
+-e PHP_TZ="Europe/Moscow" \
+-d zabbix/zabbix-web-apache-mysql:latest
